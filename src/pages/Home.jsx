@@ -1,8 +1,15 @@
 import React from 'react'
+import Recommend from '../components/guest/recommend'
+import Creator from '../components/guest/Creator'
+import GenerateMenu from '../components/guest/GenerateMenu'
 
 function Home() {
   return (
-    <div>Home</div>
+    <div className='flex justify-between'>
+      <GenerateMenu/>
+      <Recommend/>
+      <Creator/>
+    </div>
   )
 }
 
