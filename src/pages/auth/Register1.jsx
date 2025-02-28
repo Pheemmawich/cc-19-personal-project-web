@@ -38,29 +38,28 @@ function Register1() {
   }
 
   return (
-    <div className="flex w-full h-full justify-center py-5">
-      {/* Card */}
-      <div className="w-64 p-4 rounded-md shadow-md border" >
-
-        <h1 className="text-xl font-bold text-blue-900 text-center">
-          Register1
+    <div className="flex w-full h-full justify-center py-10">
+      {/* Card with Gradient background and enhanced design */}
+      <div className="w-96 p-10 rounded-2xl shadow-2xl bg-gradient-to-br from-yellow-300 via-yellow-100 to-white">
+        <h1 className="text-4xl font-extrabold text-gray-800 text-center mb-6 tracking-wide">
+          ลงทะเบียน
         </h1>
 
         {/* Form */}
         <form onSubmit={handleSubmit(hdlOnSubmit)}>
 
-          <div className='flex flex-col gap-2 py-4'>
-            <FormInput register={register} name="identity" errors = {errors} placeholder='Email or Phone number'/>
-            <FormInput register={register} name="firstname" errors = {errors} placeholder='Firstname'/>
-            <FormInput register={register} name="lastname" errors = {errors} placeholder='Lastname'/>
-            <FormInput register={register} name="password" errors = {errors} type = 'password' placeholder='Password'/>
-            <FormInput register={register} name="confirmPassword" errors = {errors} type = 'password'placeholder='Confirm Password'/>
+          <div className="flex flex-col gap-6 mb-6">
+            <FormInput register={register} name="identity" errors={errors} placeholder='Email หรือ หมายเลขโทรศัพท์' />
+            <FormInput register={register} name="firstname" errors={errors} placeholder='ชื่อจริง' />
+            <FormInput register={register} name="lastname" errors={errors} placeholder='นามสกุล' />
+            <FormInput register={register} name="password" errors={errors} type="password" placeholder='รหัสผ่าน' />
+            <FormInput register={register} name="confirmPassword" errors={errors} type="password" placeholder='ยืนยันรหัสผ่าน' />
           </div>
 
-          <div className="flex justify-center">
-            <Buttons isSubmitting={isSubmitting} label={'register'}/>
+          {/* Submit Button */}
+          <div className="flex justify-center mt-8">
+            <Buttons isSubmitting={isSubmitting} label="ลงทะเบียน" />
           </div>
-
         </form>
       </div>
     </div>

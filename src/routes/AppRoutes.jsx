@@ -37,7 +37,7 @@ function AppRoutes() {
                 <Route path="map" element={<MapUser />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="create-recipe" element={<CreateRecipe />} />
-                <Route path="recipe-data" element={<RecipeData />} />
+                <Route path="recipe-data/:id" element={<RecipeData />} />
             </Route>
             
             <Route path = "/admin" element={<ProtectRoutes layout = {<LayoutAdmin/>} allows={["ADMIN"]}/>}>
