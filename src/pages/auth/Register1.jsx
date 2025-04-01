@@ -38,31 +38,30 @@ function Register1() {
   }
 
   return (
-    <div className="flex w-full h-full justify-center py-10">
-      {/* Card with Gradient background and enhanced design */}
-      <div className="w-96 p-10 rounded-2xl shadow-2xl bg-gradient-to-br from-yellow-300 via-yellow-100 to-white">
-        <h1 className="text-4xl font-extrabold text-gray-800 text-center mb-6 tracking-wide">
-          ลงทะเบียน
-        </h1>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit(hdlOnSubmit)}>
-
-          <div className="flex flex-col gap-6 mb-6">
-            <FormInput register={register} name="identity" errors={errors} placeholder='Email หรือ หมายเลขโทรศัพท์' />
-            <FormInput register={register} name="firstname" errors={errors} placeholder='ชื่อจริง' />
-            <FormInput register={register} name="lastname" errors={errors} placeholder='นามสกุล' />
-            <FormInput register={register} name="password" errors={errors} type="password" placeholder='รหัสผ่าน' />
-            <FormInput register={register} name="confirmPassword" errors={errors} type="password" placeholder='ยืนยันรหัสผ่าน' />
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-center mt-8">
-            <Buttons isSubmitting={isSubmitting} label="ลงทะเบียน" />
-          </div>
-        </form>
-      </div>
+  <div className="flex w-full h-screen justify-center items-center">
+    <div className="w-full max-w-md ml-0 p-10 rounded-2xl shadow-black bg-opacity-80">
+      <h1 className="text-5xl font-extrabold text-white text-center mb-8 tracking-wide">
+        ลงทะเบียน
+      </h1>
+  
+      {/* ฟอร์ม */}
+      <form className="bg-opacity-0" onSubmit={handleSubmit(hdlOnSubmit)}>
+        <div className="flex flex-col gap-6 mb-6">
+          <FormInput register={register} name="firstname" errors={errors} placeholder="ชื่อจริง" />
+          <FormInput register={register} name="lastname" errors={errors} placeholder="นามสกุล" />
+          <FormInput register={register} name="identity" errors={errors} placeholder="Email หรือ หมายเลขโทรศัพท์" />
+          <FormInput register={register} name="password" errors={errors} type="password" placeholder="รหัสผ่าน" />
+          <FormInput register={register} name="confirmPassword" errors={errors} type="password" placeholder="ยืนยันรหัสผ่าน" />
+        </div>
+  
+        {/* ปุ่มส่งฟอร์ม */}
+        <div className="flex justify-center mt-8">
+          <Buttons isSubmitting={isSubmitting} label="ลงทะเบียน" />
+        </div>
+      </form>
     </div>
+  </div>
+
   )
 }
 

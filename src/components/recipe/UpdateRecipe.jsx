@@ -1,272 +1,332 @@
-import axios from 'axios'
-import React, { useState } from 'react'
-import { createAlert } from '../../utils/createAlert'
-import { useForm } from 'react-hook-form'
-import FormInput from '../../components/form/FormInput'
-import Buttons from '../../components/form/Buttons'
-import { actionRegister } from '../../api/auth'
-import useAuthStore from '../../stores/auth-store'
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { createAlert } from "../../utils/createAlert";
+import { useForm } from "react-hook-form";
+import FormInput from "../../components/form/FormInput";
+import Buttons from "../../components/form/Buttons";
+import { actionRegister } from "../../api/auth";
+import useAuthStore from "../../stores/auth-store";
+import { useParams, Link, Navigate, useNavigate } from "react-router";
+import Swal from "sweetalert2";
+import { PlusCircle, Trash2 } from "lucide-react";
 
-function CreateRecipe() {
+function UpdateRecipe() {
+  const navigate = useNavigate();
+  const [recipeName, setRecipeName] = useState(""); //state ของชื่อ
+  const [newFoodPhoto, setNewFoodPhoto] = useState(null); //state ของรูป(เป็นไฟล์)
+  const [foodPhoto, setFoodPhoto] = useState(null); //state ของรูป(เป็นไฟล์)
+  const [recipeDescription, setRecipeDescription] = useState(""); //state ของคำอธิบาย
+  const [category, setCategory] = useState(""); //state category
 
-// const [data,setData]=useState([1,2])
-// const test =async()=>{
-//     const rs = await axios.get('https://pokeapi.co/api/v2/pokemon')
-//     // setData([1,2])
-// }
-// // test()
+  const [ingredient, setIngredient] = useState([
+    { id: 1, text: "ไก่" },
+    { id: 2, text: "กระเพา" },
+    { id: 3, text: "" },
+  ]); //state ของวัตถุดิบ
+  const [procedure, setProcedure] = useState([
+    { id: 1, text: "หั่นไก่" },
+    { id: 2, text: "ผัดกับกระเพา" },
+    { id: 3, text: "" },
+  ]); //state วิธีทำ
 
-    const [recipeName, setRecipeName] = useState('กระเพาไก่') //state ของชื่อ
+  const token = useAuthStore((state) => state.token); //เอาtoken มาจาก store zustand
 
-    const [foodPhoto, setFoodPhoto] = useState(null) //state ของรูป(เป็นไฟล์)
+  const { id } = useParams();
+  console.log(id);
 
-    const [recipeDescription, setRecipeDescription] = useState('อร่อย') //state ของคำอธิบาย
+  const getData = async () => {
+    const data = await axios.get(`http://localhost:8000/api/recipes/${id}`);
+    const ingredient = JSON.parse(data.data.recipe.ingredient);
+    const method = JSON.parse(data.data.recipe.method);
+    const { name, foodImage, description, category } = data.data.recipe;
+    const { firstname, lastname } = data.data.recipe.user;
+    setRecipeName(name);
+    setFoodPhoto(foodImage);
+    setRecipeDescription(description);
+    setIngredient(ingredient);
+    setProcedure(method);
+    setCategory(category.name);
+    console.log("data.data.ingredient :>> ", data.data.recipe.ingredient);
+    console.log("---------------------------------", data.data);
+    console.log("ingredient------", ingredient);
+    console.log("name------", name);
+    console.log("method------", method);
+    console.log("foodImage------", foodImage);
+    console.log("description------", description);
+    console.log("category------", category);
+    console.log("firstname------", firstname);
+    console.log("lastname------", lastname);
+    console.log("id------", id);
 
-    const [ingredient, setIngredient] = useState([
-        {id: 1, text:"ไก่" },
-        {id: 2, text: "กระเพา"},
-        {id: 3, text: ""},
-      ])                                               //state ของวัตถุดิบ                             
-    
-    const [procedure, setProcedure] = useState([
-        {id: 1, text:"หั่นไก่" },
-        {id: 2, text: "ผัดกับกระเพา"},
-        {id: 3, text: ""},
-    ])                                                  //state วิธีทำ
+    setRecipe((pre) => ({
+      ...pre,
+      id,
+      name,
+      foodImage,
+      description,
+      method,
+      ingredient,
+      category: category.name,
+      firstname,
+      lastname,
+    }));
+  };
 
-    const [category, setCategory] =useState('')         //state category
+  useEffect(() => {
+    getData();
+  }, []);
 
-    const token = useAuthStore(state => state.token)    //เอาtoken มาจาก store zustand
+  const hdlChangeIngredient = (e, id) => {
+    setIngredient((prev) =>
+      prev.map((el) => {
+        // console.log("ค่าในonchange", el)
+        return el.id !== id ? el : { ...el, text: e.target.value }; //ฟังก์ชันการเปลี่ยนค่าในinput ingredient
+      })
+    );
+  };
 
-  
-    // const {register, handleSubmit, formState, reset} = useForm()
-    // const { isSubmitting, errors} = formState
+  const hdlOnChangeProcedure = (e, id) => {
+    setProcedure((prev) =>
+      prev.map((el) => {
+        // console.log("ค่าในonchange", el)
+        return el.id !== id ? el : { ...el, text: e.target.value }; //ฟังก์ชันการเปลี่ยนค่าในinput procedure
+      })
+    );
+  };
 
-    const hdlChangeIngredient = (e,id) => {    
-        setIngredient(prev => prev.map( el =>{
-            // console.log("ค่าในonchange", el)
-           return el.id !== id ? el : {...el, text: e.target.value} //ฟังก์ชันการเปลี่ยนค่าในinput ingredient       
-        }))
-    }
+  const hdlOnSubmit = async (e) => {
+    e.preventDefault();
+    // Delay
+    // await new Promise((resolve) => setTimeout(resolve, 1000))
+    const formdata = new FormData();
+    formdata.append("name", recipeName);
+    formdata.append("image", newFoodPhoto);
+    formdata.append("description", recipeDescription);
+    formdata.append("method", JSON.stringify(procedure));
+    formdata.append("ingredient", JSON.stringify(ingredient));
+    formdata.append("category", category);
 
-    const hdlOnChangeProcedure = (e,id) => {    
-        setProcedure(prev => prev.map( el =>{
-            // console.log("ค่าในonchange", el)
-           return el.id !== id ? el : {...el, text: e.target.value}  //ฟังก์ชันการเปลี่ยนค่าในinput procedure
-        }))
-    }
-
-    const hdlOnSubmit = async (e) => {
-        e.preventDefault()    
-        // Delay
-        // await new Promise((resolve) => setTimeout(resolve, 1000))
-        const formdata = new FormData() 
-        formdata.append('name', recipeName)
-        formdata.append('image', foodPhoto)
-        formdata.append('description', recipeDescription)
-        formdata.append('method', JSON.stringify(procedure))
-        formdata.append('ingredient', JSON.stringify(ingredient))
-        formdata.append('category', category)
-    
-        try {
-          const res = await axios.post('http://localhost:8000/api/recipes/create-recipe', formdata, {
-			headers : { Authorization : `Bearer ${token}`}
-		})
-        setRecipeName(res)
+    console.log("formdata", formdata);
+    try {
+      Swal.fire({
+        icon: "info",
+        text: "Are you sure to update recipe?",
+        // showDenyButton:true,
+        showCancelButton: true,
+      }).then(async (data) => {
+        console.log(data.isConfirmed);
+        if (data.isConfirmed) {
+          const res = await axios.patch(
+            `http://localhost:8000/api/recipes/update-recipe/${id}`,
+            formdata,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          getData();
           // setValue(initialValue)
-          createAlert('success', 'recipe post success')
-        //   reset()
+          createAlert("success", "recipe update success");
+          navigate("/user/profile");
+          //   reset()
           console.log(res);
-        } catch (error) {
-        //   createAlert('info', error.response?.data?.message)
-        //   console.log(error.response?.data?.message);
-        console.log(error);
         }
+      });
+    } catch (error) {
+      //   createAlert('info', error.response?.data?.message)
+      //   console.log(error.response?.data?.message);
+      console.log(error);
+    }
+  };
+
+  const addIngredient = () =>
+    setIngredient((pre) => [
+      ...pre,
+      {
+        id: pre.length > 0 ? pre[pre.length - 1].id + 1 : 1,
+        text: "",
+      },
+    ]);
+
+  const hdlDelIngredient = (id) => {
+    // console.log("iddd",id);
+    setIngredient((pre) => {
+      if (pre.length > 1) {
+        return pre.filter((el) => el.id !== id);
+      } else {
+        return pre;
       }
+    });
+  };
 
-    
-    const addIngredient = () => setIngredient(pre=>[...pre, 
-        {
-          id: pre.length >0 ? pre[pre.length-1].id+1 : 1,
-          text:""
-         }
-      ])
+  const addProcedure = () =>
+    setProcedure((pre) => [
+      ...pre,
+      { id: pre.length > 0 ? pre[pre.length - 1].id + 1 : 1, text: "" },
+    ]);
 
-    const hdlDelIngredient = (id) => {
-        // console.log("iddd",id);
-        setIngredient(pre=>{
-            if(pre.length > 1){
-                return pre.filter(el=> el.id !== id)
-            }else{
-            return pre
-            }
-            }
-        )
-    }
+  const hdlDelProcedure = () => {
+    setProcedure((pre) => (pre.length > 1 ? [...pre.slice(0, -1)] : pre));
+  };
 
-    const addProcedure = () => setProcedure(pre => [...pre,{ id: pre.length >0 ? pre[pre.length-1].id+1 : 1,
-    text:""}])
-
-    const hdlDelProcedure = () => {
-        setProcedure(pre => pre.length>1 ?[...pre.slice(0, -1)] : pre);
-    }
-
-    const hdlChangeName = (e) => {
-        setRecipeName(e.target.value)
-        console.log(recipeName)
-    }
+  const hdlChangeName = (e) => {
+    setRecipeName(e.target.value);
     console.log(recipeName);
+  };
+  console.log(recipeName);
 
-    const hdlChangeDescription = (e) => {
-        setRecipeDescription(e.target.value)
-    }
-    // console.log(recipeDescription);
+  const hdlChangeDescription = (e) => {
+    setRecipeDescription(e.target.value);
+  };
+  // console.log(recipeDescription);
 
-    const hdlFileChange = e => {
-		console.log(e.target.files)
-		setFoodPhoto(e.target.files[0])
-	}
+  const hdlFileChange = (e) => {
+    console.log(e.target.files);
+    setNewFoodPhoto(e.target.files[0]);
+  };
 
-    const hdlChangeCategory = e => {
-        setCategory(e.target.value);
-    }
-    console.log(category);
-    
-    return (
-        <div className="max-w-4xl mx-auto bg-gradient-to-br from-yellow-100 via-white to-yellow-200 p-10 shadow-xl rounded-xl">
-          <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-8">เขียนสูตรอาหาร</h1>
-          
-          <form onSubmit={hdlOnSubmit} className="space-y-8">
-            {/* ชื่อสูตร */}
-            <div>
+  const hdlChangeCategory = (e) => {
+    setCategory(e.target.value);
+  };
+  console.log(category);
+
+  return (
+    <div className="w-full max-w-3xl my-12 mx-auto bg-white p-10 shadow-xl rounded-3xl border border-gray-200">
+      <h1 className="text-4xl font-bold text-center text-gray-800 mb-8">
+        📝 เขียนสูตรอาหาร
+      </h1>
+      <form onSubmit={hdlOnSubmit} className="space-y-6">
+        {/* ชื่อสูตร */}
+        <input
+          type="text"
+          className="w-full p-4 border rounded-lg text-lg focus:ring-2 focus:ring-gray-300"
+          placeholder="🍲 ชื่อสูตรอาหาร"
+          onChange={hdlChangeName}
+          value={recipeName}
+        />
+        {/* รูปภาพ */}
+        <div className="relative">
+          <div className="h-80 flex items-center justify-center border rounded-lg overflow-hidden relative">
+            <input
+              type="file"
+              onChange={hdlFileChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            {newFoodPhoto ? (
+              <img
+                src={URL.createObjectURL(newFoodPhoto)}
+                alt="Food"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src={foodPhoto}
+                alt="Food"
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
+        </div>
+        {/* คำอธิบาย */}
+        <textarea
+          className="w-full p-4 border rounded-lg text-lg focus:ring-2 focus:ring-gray-300"
+          rows="3"
+          placeholder="📖 คำอธิบายสูตรอาหาร"
+          onChange={hdlChangeDescription}
+          value={recipeDescription}
+        />
+        {/* ส่วนผสม */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">🥕 ส่วนผสม</h2>
+          {ingredient.map((el, index) => (
+            <div key={index} className="flex items-center space-x-3 mb-3">
+              <input
+                value={el.text}
+                onChange={(e) => hdlChangeIngredient(e, el.id)}
+                type="text"
+                className="flex-1 p-3 border rounded-lg text-lg focus:ring-2 focus:ring-gray-300"
+                placeholder="ส่วนผสม"
+              />
+              <button
+                onClick={() => hdlDelIngredient(el.id)}
+                type="button"
+                className="text-red-500 font-bold text-xl hover:cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addIngredient}
+            className="w-full p-3 bg-gray-200 text-gray-700 rounded-lg text-lg hover:bg-gray-300 hover:cursor-pointer"
+          >
+            ➕ เพิ่มส่วนผสม
+          </button>
+        </div>
+        {/* วิธีการทำ */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">👩‍🍳 วิธีการทำ</h2>
+          {procedure.map((el, index) => (
+            <div key={index} className="flex items-center space-x-3 mb-3">
+              <div className="w-10 h-10 bg-gray-300 text-gray-800 flex items-center justify-center rounded-full font-bold">
+                {el.id}
+              </div>
               <input
                 type="text"
-                className="w-full bg-gradient-to-r from-white to-gray-100 text-gray-800 p-5 rounded-xl shadow-lg focus:outline-none focus:ring-4 focus:ring-yellow-400 placeholder-gray-500 text-xl"
-                placeholder="ชื่อสูตร"
-                onChange={hdlChangeName}
-                value={recipeName}
+                className="flex-1 p-3 border rounded-lg text-lg focus:ring-2 focus:ring-gray-300"
+                placeholder="ขั้นตอน"
+                value={el.text}
+                onChange={(e) => hdlOnChangeProcedure(e, el.id)}
               />
-            </div>
-      
-            {/* รูปภาพ */}
-            <div className="relative">
-              <div className="bg-gradient-to-r from-yellow-200 to-yellow-400 h-96 flex items-center justify-center rounded-xl overflow-hidden border-4 border-yellow-500 shadow-xl">
-                <input
-                  type="file"
-                  onChange={hdlFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                {foodPhoto && <img src={URL.createObjectURL(foodPhoto)} alt="Food Photo" className="w-full h-full object-cover rounded-xl" />}
-              </div>
-              {!foodPhoto && <p className="mt-2 text-center text-sm text-gray-800">เพิ่มรูปภาพ</p>}
-            </div>
-      
-            {/* คำอธิบาย */}
-            <div>
-              <textarea
-                className="w-full bg-gradient-to-r from-white to-gray-100 text-gray-800 p-5 rounded-xl shadow-lg focus:outline-none focus:ring-4 focus:ring-yellow-400 placeholder-gray-500 text-lg"
-                rows="4"
-                placeholder="คำอธิบาย"
-                onChange={hdlChangeDescription}
-                value={recipeDescription}
-              />
-            </div>
-            
-            {/* ส่วนผสม */}
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">ส่วนผสม</h2>
-              {ingredient.map((el, index) => (
-                <div key={index} className="flex items-center space-x-4 mb-4">
-                  <input
-                    value={el.text}
-                    onChange={(e) => hdlChangeIngredient(e, el.id)}
-                    type="text"
-                    className="flex-1 bg-gradient-to-r from-white to-gray-100 text-gray-800 p-4 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-lg"
-                    placeholder="ส่วนผสม"
-                  />
-                  <button
-                    onClick={() => hdlDelIngredient(el.id)}
-                    type="button"
-                    className="text-2xl text-red-600 hover:text-red-800 transition-all"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
               <button
+                onClick={() => hdlDelProcedure(el.id)}
                 type="button"
-                onClick={addIngredient}
-                className="w-full bg-gradient-to-r from-yellow-300 to-yellow-400 text-gray-800 p-4 rounded-xl shadow-lg hover:bg-gradient-to-r from-yellow-400 to-yellow-500 transition-all duration-300 cursor-pointer"
+                className="text-red-500 font-bold text-xl hover:cursor-pointer"
               >
-                + เพิ่ม
+                ×
               </button>
             </div>
-            
-            {/* วิธีการทำ */}
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">วิธีการทำ</h2>
-              {procedure.map((el, index) => (
-                <div key={index} className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-300 to-yellow-400 text-white flex items-center justify-center rounded-full text-xl font-bold">
-                    {el.id}
-                  </div>
-                  <input
-                    type="text"
-                    className="flex-1 bg-gradient-to-r from-white to-gray-100 text-gray-800 p-4 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-lg"
-                    placeholder="ขั้นตอน"
-                    value={el.text}
-                    onChange={(e) => hdlOnChangeProcedure(e, el.id)}
-                  />
-                  <button
-                    onClick={hdlDelProcedure}
-                    type="button"
-                    className="text-2xl text-red-600 hover:text-red-800 transition-all cursor-pointer"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={addProcedure}
-                type="button"
-                className="w-full bg-gradient-to-r from-yellow-300 to-yellow-400 text-gray-800 p-4 rounded-xl shadow-lg hover:bg-gradient-to-r from-yellow-400 to-yellow-500 transition-all duration-300 cursor-pointer"
-              >
-                + เพิ่ม
-              </button>
-            </div>
-      
-            {/* หมวดหมู่ */}
-            <div>
-              <label className="block text-lg font-medium text-gray-800 mb-3">เลือกหมวดหมู่</label>
-              <select
-                value={category}
-                onChange={hdlChangeCategory}
-                className="w-full bg-gradient-to-r from-white to-gray-100 text-gray-800 p-4 border-2 border-yellow-500 rounded-xl shadow-lg focus:outline-none focus:ring-4 focus:ring-yellow-400 text-lg"
-              >
-                <option value="" disabled>-- กรุณาเลือก --</option>
-                <option value="อาหารคาว">อาหารคาว</option>
-                <option value="ของหวาน">ของหวาน</option>
-                <option value="อาหารจานหลัก">อาหารจานหลัก</option>
-                <option value="อาหารทานเล่น">อาหารทานเล่น</option>
-                <option value="เครื่องดื่ม">เครื่องดื่ม</option>
-              </select>
-              {category && <p className="mt-2 text-gray-800">คุณเลือก: {category}</p>}
-            </div>
-      
-            {/* ปุ่มส่ง */}
-            <div className="flex justify-center mt-8">
-              <button
-                type="submit"
-                className="w-full sm:w-auto bg-gradient-to-r from-yellow-300 to-yellow-400 text-gray-800 p-5 rounded-xl shadow-lg hover:bg-gradient-to-r from-yellow-400 to-yellow-500 hover:scale-105 transition-all duration-300 cursor-pointer"
-              >
-                ส่งสูตรอาหาร
-              </button>
-            </div>
-          </form>
+          ))}
+          <button
+            onClick={addProcedure}
+            type="button"
+            className="w-full p-3 bg-gray-200 text-gray-700 rounded-lg text-lg hover:bg-gray-300 hover:cursor-pointer"
+          >
+            ➕ เพิ่มขั้นตอน
+          </button>
         </div>
-      );
-      
-   
+        {/* หมวดหมู่ */}
+        <div>
+          <label className="block text-lg font-medium text-gray-800 mb-2">
+            📌 เลือกหมวดหมู่
+          </label>
+          <select
+            value={category}
+            onChange={hdlChangeCategory}
+            className="w-full p-3 border rounded-lg text-lg focus:ring-2 focus:ring-gray-300"
+          >
+            <option value="" disabled>
+              -- กรุณาเลือก --
+            </option>
+            <option value="อาหารคาว">อาหารคาว</option>
+            <option value="ของหวาน">ของหวาน</option>
+            <option value="อาหารจานหลัก">อาหารจานหลัก</option>
+            <option value="อาหารทานเล่น">อาหารทานเล่น</option>
+            <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+          </select>
+        </div>
+        {/* ปุ่มส่ง */}
+        <div className="flex justify-center mt-6">
+          <button
+            type="submit"
+            className="w-full sm:w-auto px-6 py-3 bg-gray-800 text-white rounded-lg text-lg hover:bg-gray-900 hover:cursor-pointer"
+          >
+            🚀 ส่งสูตรอาหาร
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
-export default CreateRecipe
+export default UpdateRecipe;

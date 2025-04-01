@@ -1,5 +1,5 @@
 import React from 'react'
-import Recommend from '../components/guest/recommend'
+import Recommend from '../components/guest/Recommend'
 import Creator from '../components/guest/Creator'
 import GenerateMenu from '../components/guest/GenerateMenu'
 

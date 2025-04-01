@@ -4,3 +4,9 @@
       @apply px-8 mx-auto;
     }
   }
+@plugin "daisyui";
+
+body{
+  font-family: "Kanit", sans-serif;
+
+}

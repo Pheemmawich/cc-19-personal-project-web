@@ -1,39 +1,81 @@
-import { SignedIn, SignedOut,  SignInButton, SignOutButton } from '@clerk/clerk-react'
-import Signout from './user/Signout'
-import React, { useState } from 'react'
-import { Link } from 'react-router'
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignOutButton,
+} from "@clerk/clerk-react";
+import Signout from "./user/Signout";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router";
+import { ChefHat, Search } from "lucide-react";
+import axios from "axios";
 
 function MainNav() {
+  //   const [category, setCategory] = useState("");
+  //   const [recipesByCategory, setRecipeByCategory] = useState([]);
+
+  //   const hdlOnChangeCategory = () => {
+  //     setCategory(e.target.value)
+  //   }
+
+  //   const getRecipesByCategory = async () => {
+  //     const data = await axios.get(`/recipes/by-category/${category}`);
+  //     console.log("recipe by category", data);
+  //   };
+
+  //   useEffect(() => {
+  //     getRecipesByCategory();
+  //   }, []);
 
   return (
-    <nav
-        className = 'flex justify-between bg-yellow-200 text green-900 font-bold px-8 py-2 my-2 rounded-md shadow-md'
-    >
-        <div className="flex gap-4">
-            <Link to = '/'>Logo</Link>
-            <Link to = '/'>Home</Link>
-            
-        </div>
-        <div className="flex gap-4">
-            <Link to = '/register'>Register</Link>  
-            <Link to = '/login'>Login</Link>
+    <nav className="z-10 flex justify-center items-center gap-40  bg-transparent  py-4 px-10 fixed top-0 w-full">
+      {/* Left Section */}
+      <div className="flex items-center gap-4">
+        <Link to="/" className="flex items-center gap-2">
+          <ChefHat color="white" className="w-8 h-8" />
+          <span className="text-white text-3xl font-bold">Let's Cook</span>
+        </Link>
+      </div>
 
-        {/* <div className='bg-white relative group'>
-          <SignedOut>
-            <SignInButton mode='modal'>
-                <span>Sign in</span>
-            </SignInButton>
-          </SignedOut>
+      {/* Center Section (Search) */}
+      <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-full shadow-md">
+        <select>
+          <option value="" disabled>
+            เลือกประเภทอาหาร
+          </option>
+          <option value="อาหารคาว">อาหารคาว</option>
+          <option value="ของหวาน">ของหวาน</option>
+          <option value="อาหารจานหลัก">อาหารจานหลัก</option>
+          <option value="อาหารทานเล่น">อาหารทานเล่น</option>
+          <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+        </select>
+        <input
+          type="text"
+          placeholder="Search for recipes..."
+          className="bg-transparent text-teal-700 placeholder:text-teal-500 text-lg focus:outline-none w-48 rounded-full px-4 py-2"
+        />
+        <button className="bg-teal-400 text-white rounded-full p-2 hover:bg-teal-500 transition-all">
+          <Search className="w-6 h-6" />
+        </button>
+      </div>
 
-          <SignedIn>
-                <span >Hello User</span>
-          </SignedIn>
-          <Signout/>         
-        </div> */}
-
-        </div>
+      {/* Right Section */}
+      <div className="flex items-center gap-6">
+        <Link
+          to="/register"
+          className="px-6 py-2 bg-teal-400 text-white rounded-full shadow-md hover:bg-teal-500 transition-all"
+        >
+          Register
+        </Link>
+        <Link
+          to="/login"
+          className="px-6 py-2 bg-teal-400 text-white rounded-full shadow-md hover:bg-teal-500 transition-all"
+        >
+          Login
+        </Link>
+      </div>
     </nav>
-  )
+  );
 }
 
-export default MainNav
+export default MainNav;

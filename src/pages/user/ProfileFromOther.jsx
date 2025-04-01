@@ -1,15 +1,16 @@
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router";
+import { Link, Navigate, useNavigate, useParams } from "react-router";
 import useAuthStore from "../../stores/auth-store";
 import { Camera, Pencil, Plus, SquarePlus, SquareX } from "lucide-react";
 import defaultProfile from "../../assets/defaultProfile.svg";
 import Swal from "sweetalert2";
 
-function Profile() {
+function ProfileFromOther() {
   const refInput = useRef(null);
 
-  const [initProfile, setInitProfile] = useState({});
+  const { creatorId } = useParams();
+  console.log("creatorId :>> ", creatorId);
 
   const [profile, setProfile] = useState({
     id: "",
@@ -29,11 +30,10 @@ function Profile() {
 
   const getData = async () => {
     try {
-      console.log(token);
-      const data = await axios.get("http://localhost:8000/api/getme", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log(data);
+      const data = await axios.get(
+        `http://localhost:8000/api/user/${creatorId}`
+      );
+      console.log("creator data", data);
       const {
         id,
         firstname,
@@ -43,17 +43,8 @@ function Profile() {
         profileImage,
         coverImage,
       } = data.data.user;
+
       setProfile((pre) => ({
-        ...pre,
-        id,
-        firstname,
-        lastname,
-        email,
-        phoneNumber,
-        profileImage,
-        coverImage,
-      }));
-      setInitProfile((pre) => ({
         ...pre,
         id,
         firstname,
@@ -67,16 +58,18 @@ function Profile() {
       console.log("fetch user data error", error);
     }
   };
-  console.log("initProfile :>> ", initProfile);
   console.log("profile", profile);
 
   const getRecipeData = async () => {
     try {
-      const recipeData = await axios.get("http://localhost:8000/api/recipes", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const recipeData = await axios.get(
+        `http://localhost:8000/api//recipes/by-userId/${creatorId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       console.log("recipe data", recipeData);
-      setRecipe(recipeData.data);
+      setRecipe(recipeData.data.recipes);
     } catch (error) {
       console.log("fetch recipe data error", error);
     }
@@ -140,13 +133,8 @@ function Profile() {
     }
   };
 
-  const hdlOnCancle = () => {
-    setIsEdit(false);
-    setProfile(initProfile);
-  };
-
   return (
-    <div className="bg-white min-w-200 p-10 rounded-2xl shadow-2xl max-w-4xl mx-auto mt-30 border border-gray-200">
+    <div className="bg-white p-10 rounded-2xl shadow-2xl max-w-4xl mx-auto mt-30 border border-gray-200">
       <div className="flex flex-col items-center">
         <div
           className={`relative ${isEdit ? "hover:cursor-pointer" : ""}`}
@@ -195,44 +183,21 @@ function Profile() {
             {profile.firstname} {profile.lastname}
           </h2>
         )}
-
-        {isEdit ? (
-          <div className="flex gap-4 mt-4">
-            <button
-              className="px-4 py-1 h-8 text-center bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition cursor-pointer"
-              onClick={hdlUpdateProfile}
-            >
-              Save
-            </button>
-            <button
-              className="px-4 py-1 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition cursor-pointer"
-              onClick={hdlOnCancle}
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            className="flex items-center gap-2 text-yellow-600 font-semibold hover:text-yellow-700 mt-4 transition cursor-pointer"
-            onClick={() => setIsEdit(true)}
-          >
-            <span>แก้ไข</span>
-            <Pencil className="w-5 h-5" />
-          </button>
-        )}
       </div>
 
-      <hr className="mt-5 border-t border-gray-300 shadow-md" />
+      <p className="mt-4">สูตรอาหารของ {profile.firstname}</p>
+      <hr className="mt-2 border-t border-gray-300 shadow-md" />
 
       <div className="mt-6 space-y-6">
-        <p>สูตรอาหารของ {profile.firstname}</p>
-        {recipe.map((el) => (
+        {recipe?.map((el) => (
           <div
             key={el.id}
             className="bg-gradient-to-br from-white to-yellow-50 border border-yellow-300 p-4 rounded-xl shadow-md flex items-center justify-between"
           >
             <Link
-              to={`/user/recipe-data/${el.id}`}
+              to={
+                token ? `/user/recipe-data/${el.id}` : `/recipe-data/${el.id}`
+              }
               className="flex items-center gap-4"
             >
               <img
@@ -247,25 +212,22 @@ function Profile() {
                 <p className="text-gray-600 mt-1">{el.description}</p>
               </div>
             </Link>
-            <button
-              onClick={() => hdlDeleteRecipe(el.id)}
-              className="text-gray-600 text-3xl hover:text-red-700 hover:scale-110 transition mx-4 cursor-pointer"
-            >
-              <SquareX className="w-6 h-6" />
-            </button>
           </div>
         ))}
       </div>
-
-      <button
-        className="flex items-center gap-2 bg-yellow-400 text-white font-semibold px-6 py-3 rounded-lg mt-8 shadow-md hover:cursor-pointer bg-yellow-500 hover:scale-105 transition mx-auto "
-        onClick={() => navigate("/user/create-recipe")}
-      >
-        <SquarePlus className="w-5 h-5" />
-        เพิ่มสูตรอาหาร
-      </button>
+      {token ? (
+        <button
+          className="flex items-center gap-2 bg-yellow-400 text-white font-semibold px-6 py-3 rounded-lg mt-8 shadow-md hover:cursor-pointer bg-yellow-500 hover:scale-105 transition mx-auto "
+          onClick={() => navigate("/user/create-recipe")}
+        >
+          <SquarePlus className="w-5 h-5" />
+          เพิ่มสูตรอาหาร
+        </button>
+      ) : (
+        <></>
+      )}
     </div>
   );
 }
 
-export default Profile;
+export default ProfileFromOther;
